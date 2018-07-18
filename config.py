@@ -12,6 +12,8 @@ class Config(object):
     # 为mysql添加配置
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:mysql@127.0.0.1:3306/flask_newsweb"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # 如果指定此配置为True，在视图函数请求结束后，数据库修改后开启自动提交的功能，自动执行db.session.commit()
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     # Redis服务器配置
     REDIS_HOST = "127.0.0.1"
     REDIS_PORT = 6379
