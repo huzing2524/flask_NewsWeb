@@ -27,9 +27,9 @@ def login():
     # 1.获取参数
     param_dict = request.json
     mobile = param_dict.get("mobile")
-    passport = param_dict.get("password")
+    password = param_dict.get("password")
     # 2.校验参数
-    if not all([mobile, passport]):
+    if not all([mobile, password]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
     if not re.match("1[35678]\\d{9}", mobile):
         return jsonify(errno=RET.PARAMERR, errmsg="手机号格式错误")
@@ -43,7 +43,7 @@ def login():
     if not user:
         return jsonify(errno=RET.NODATA, errmsg="用户不存在")
     # 5.校验密码是否正确,调用models中的实例方法把密文密码和明文密码进行比对
-    if not user.check_passowrd(passport):
+    if not user.check_passowrd(password):
         return jsonify(errno=RET.PWDERR, errmsg="密码错误")
     # 6.往session中添加保存数据保持登录状态
     session["user_id"] = user.id
