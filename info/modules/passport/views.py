@@ -49,7 +49,11 @@ def login():
     session["user_id"] = user.id
     session["mobile"] = user.mobile
     session["nick_name"] = user.nick_name
-    # 7. 成功的响应
+    # 7.记录用户最后一次登录的时间
+    user.last_login = datetime.now()
+    # 如果在视图函数中，对模型的属性有修改，那么需要commit提交到数据库保存；
+    # 如果事先对SQLAlchemy进行过配置，那么就不用写commit()
+    # 8. 成功的响应
     return jsonify(errno=RET.OK, errmsg="登录成功")
 
 
