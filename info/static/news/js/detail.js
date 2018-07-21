@@ -155,9 +155,11 @@ $(function () {
             }
 
             let comment_id = $(this).attr("data-commentid")
+
+
             let params = {
                 "comment_id": comment_id,
-                "action": action,
+                "action": action
             };
 
             $.ajax({
