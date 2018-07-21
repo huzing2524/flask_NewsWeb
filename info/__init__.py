@@ -49,10 +49,14 @@ def create_app(config_name):
     from info.modules.index import index_blu
     from info.modules.passport import passport_blu
     from info.modules.news import news_blu
+    from info.modules.profile import profile_blu
+
     # 注册蓝图
     app.register_blueprint(index_blu)
     app.register_blueprint(passport_blu)
     app.register_blueprint(news_blu)
+    app.register_blueprint(profile_blu)
+
     return app
 
 
