@@ -3,7 +3,7 @@ function getCookie(name) {
     return r ? r[1] : undefined;
 }
 
-$(function(){
+$(function () {
     var $a = $('.edit');
     var $add = $('.addtype');
     var $pop = $('.pop_con');
@@ -14,7 +14,7 @@ $(function(){
     var sHandler = 'edit';
     var sId = 0;
 
-    $a.click(function(){
+    $a.click(function () {
         sHandler = 'edit';
         sId = $(this).parent().siblings().eq(0).html();
         $pop.find('h3').html('修改分类');
@@ -22,30 +22,28 @@ $(function(){
         $pop.show();
     });
 
-    $add.click(function(){
+    $add.click(function () {
         sHandler = 'add';
         $pop.find('h3').html('新增分类');
         $input.val('');
         $pop.show();
     });
 
-    $cancel.click(function(){
+    $cancel.click(function () {
         $pop.hide();
         $error.hide();
     });
 
-    $input.click(function(){
+    $input.click(function () {
         $error.hide();
     });
 
-    $confirm.click(function(){
+    $confirm.click(function () {
 
         var params = {}
-        if(sHandler=='edit')
-        {
+        if (sHandler == 'edit') {
             var sVal = $input.val();
-            if(sVal=='')
-            {
+            if (sVal == '') {
                 $error.html('输入框不能为空').show();
                 return;
             }
@@ -54,11 +52,9 @@ $(function(){
                 "name": sVal,
             };
         }
-        else
-        {
+        else {
             var sVal = $input.val();
-            if(sVal=='')
-            {
+            if (sVal == '') {
                 $error.html('输入框不能为空').show();
                 return;
             }

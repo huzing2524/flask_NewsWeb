@@ -17,6 +17,8 @@ def logout():
     session.pop("user_id", None)
     session.pop("mobile", None)
     session.pop("nick_name", None)
+    # 删除管理员登录之后保持的session，否则先有管理员登录、退出之后，再用普通账号登录，可以访问管理员后台
+    session.pop("is_admin", None)
     return jsonify(errno=RET.OK, errmsg="退出登录成功")
 
 
