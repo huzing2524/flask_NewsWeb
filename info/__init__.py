@@ -1,6 +1,6 @@
 from logging.handlers import RotatingFileHandler
 import logging
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from flask_wtf import CSRFProtect
@@ -9,12 +9,11 @@ from flask_wtf.csrf import generate_csrf
 from redis import StrictRedis
 from config import config
 
-
 # 初始化数据库
 db = SQLAlchemy()
 # python3.6新功能,给变量或者函数增加智能补全提示的2种方法,类型标识
-redis_store = None  # type: StrictRedis
 # redis_store: StrictRedis = None
+redis_store = None  # type: StrictRedis
 
 
 def create_app(config_name):
@@ -28,7 +27,8 @@ def create_app(config_name):
     db.init_app(app)
     # 初始化redis存储对象
     global redis_store
-    redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT, decode_responses=True)
+    redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT,
+                              decode_responses=True)
     # 开启CSRF保护flask已实现的功能：1.从cookie中取出随机值；2.从表单中取出随机值。然后进行对比校验，并且响应校验结果
     # 需要做的事情：1.在返回响应的时候，往cookie中添加一个csrf_token；2.往表单中添加一个隐藏的csrf_token或者在ajax中添加csrf_token
     CSRFProtect(app)
@@ -36,6 +36,15 @@ def create_app(config_name):
     # 在index.html中添加自定义过滤器
     from info.utils.common import do_index_class
     app.add_template_filter(do_index_class, "index_class")
+
+    from info.utils.common import user_login_data
+
+    @app.errorhandler(404)
+    @user_login_data
+    def page_not_found(e):  # errorhandler捕获的404状态码异常信息，传递给函数形参e接受
+        user = g.user
+        data = {"user": user.to_dict() if user else None}
+        return render_template("news/404.html", data=data)
 
     @app.after_request
     def after_request(response):
@@ -50,12 +59,13 @@ def create_app(config_name):
     from info.modules.passport import passport_blu
     from info.modules.news import news_blu
     from info.modules.profile import profile_blu
+    from info.modules.admin import admin_blu
 
     # 注册蓝图
     app.register_blueprint(index_blu)
     app.register_blueprint(passport_blu)
     app.register_blueprint(news_blu)
-    app.register_blueprint(profile_blu)
+    app.register_blueprint(admin_blu, url_prfix="/admin")  # 在注册蓝图时指定url前缀
 
     return app
 

@@ -24,6 +24,8 @@ def news_list():
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
+    # 当前新闻状态 如果为0代表审核通过，1代表审核中，-1代表审核不通过
+    # 添加过滤条件，只显示审核通过的新闻
     filters = [News.status == 0]
     if cid != 1:  # 查询的不是最新的数据
         # 需要添加条件
