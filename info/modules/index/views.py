@@ -17,8 +17,8 @@ def news_list():
 
     # 2. 校验参数
     try:
-        cid = int(cid)
         page = int(page)
+        cid = int(cid)
         per_page = int(per_page)
     except Exception as e:
         current_app.logger.error(e)

@@ -1,18 +1,18 @@
 function getCookie(name) {
-    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    let r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
 }
 
 $(function () {
-    var $a = $('.edit');
-    var $add = $('.addtype');
-    var $pop = $('.pop_con');
-    var $cancel = $('.cancel');
-    var $confirm = $('.confirm');
-    var $error = $('.error_tip');
-    var $input = $('.input_txt3');
-    var sHandler = 'edit';
-    var sId = 0;
+    let $a = $('.edit');
+    let $add = $('.addtype');
+    let $pop = $('.pop_con');
+    let $cancel = $('.cancel');
+    let $confirm = $('.confirm');
+    let $error = $('.error_tip');
+    let $input = $('.input_txt3');
+    let sHandler = 'edit';
+    let sId = 0;
 
     $a.click(function () {
         sHandler = 'edit';
@@ -40,9 +40,9 @@ $(function () {
 
     $confirm.click(function () {
 
-        var params = {}
+        let params = {};
         if (sHandler == 'edit') {
-            var sVal = $input.val();
+            let sVal = $input.val();
             if (sVal == '') {
                 $error.html('输入框不能为空').show();
                 return;
@@ -53,7 +53,7 @@ $(function () {
             };
         }
         else {
-            var sVal = $input.val();
+            let sVal = $input.val();
             if (sVal == '') {
                 $error.html('输入框不能为空').show();
                 return;
@@ -63,7 +63,24 @@ $(function () {
             }
         }
 
-        // TODO 发起修改分类请求
+        // 发起修改分类请求
+        $.ajax({
+            url: "/admin/news_type",
+            method: "post",
+            headers: {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
+            data: JSON.stringify(params),
+            contentType: "application/json",
+            success: function (resp) {
+                if (resp.errno == "0") {
+                    // 刷新当前界面
+                    location.reload();
+                } else {
+                    $error.html(resp.errmsg).show();
+                }
+            }
+        })
 
     })
-})
+});

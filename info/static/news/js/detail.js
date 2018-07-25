@@ -30,7 +30,7 @@ $(function () {
                     $(".collection").hide();
                     // 显示取消收藏按钮
                     $(".collected").show();
-                } else if (resp.erno == "4101") {
+                } else if (resp.errno == "4101") {
                     $(".login_form_con").show();
                 } else {
                     alert(resp.errmsg);
@@ -154,9 +154,7 @@ $(function () {
                 action = "remove"
             }
 
-            let comment_id = $(this).attr("data-commentid")
-
-
+            let comment_id = $(this).attr("data-commentid");
             let params = {
                 "comment_id": comment_id,
                 "action": action
@@ -312,7 +310,7 @@ $(function () {
 
     // 取消关注当前新闻作者
     $(".focused").click(function () {
-        let user_id = $(this).attr('data-userid')
+        let user_id = $(this).attr('data-userid');
         let params = {
             "action": "unfollow",
             "user_id": user_id
