@@ -1,17 +1,17 @@
 function getCookie(name) {
-    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    let r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
 }
 
 $(function () {
     $(".news_edit").submit(function (e) {
-        e.preventDefault()
+        e.preventDefault();
         // 新闻编辑提交
         $(this).ajaxSubmit({
             beforeSubmit: function (request) {
                 // 在提交之前，对参数进行处理
-                for (var i = 0; i < request.length; i++) {
-                    var item = request[i]
+                for (let i = 0; i < request.length; i++) {
+                    let item = request[i];
                     if (item["name"] == "content") {
                         item["value"] = tinyMCE.activeEditor.getContent()
                     }
@@ -32,7 +32,7 @@ $(function () {
             }
         })
     })
-})
+});
 
 // 点击取消，返回上一页
 function cancel() {

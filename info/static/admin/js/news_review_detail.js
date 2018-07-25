@@ -1,5 +1,5 @@
 function getCookie(name) {
-    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    let r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
 }
 
@@ -8,15 +8,15 @@ $(function () {
         e.preventDefault();
 
         // 新闻审核提交
-        var params = {};
+        let params = {};
         // 获取到所有的参数
         $(this).serializeArray().map(function (x) {
             params[x.name] = x.value;
         });
         // 取到参数以便判断
-        var action = params["action"];
-        var news_id = params["news_id"];
-        var reason = params["reason"];
+        let action = params["action"];
+        let news_id = params["news_id"];
+        let reason = params["reason"];
         if (action == "reject" && !reason) {
             alert('请输入拒绝原因');
             return;

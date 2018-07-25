@@ -1,5 +1,5 @@
 function getCookie(name) {
-    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    let r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
 }
 
@@ -10,7 +10,8 @@ $(function () {
 
         let signature = $("#signature").val();
         let nick_name = $("#nick_name").val();
-        let gender = $(".gender").val();
+        // let gender = $(".gender").val();  错误，取不出女性选择框的值
+        let gender = $("input:radio:checked").val();
 
         if (!nick_name) {
             alert('请输入昵称');
@@ -38,14 +39,13 @@ $(function () {
             success: function (resp) {
                 if (resp.errno == "0") {
                     // 更新父窗口内容
-                    $('.user_center_name', parent.document).html(params['nick_name'])
-                    $('#nick_name', parent.document).html(params['nick_name'])
+                    $('.user_center_name', parent.document).html(params['nick_name']);
+                    $('#nick_name', parent.document).html(params['nick_name']);
                     $('.input_sub').blur()
                 } else {
                     alert(resp.errmsg);
                 }
             }
         })
-
     })
 });

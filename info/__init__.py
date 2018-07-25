@@ -1,6 +1,6 @@
 from logging.handlers import RotatingFileHandler
 import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from flask_wtf import CSRFProtect
@@ -65,7 +65,8 @@ def create_app(config_name):
     app.register_blueprint(index_blu)
     app.register_blueprint(passport_blu)
     app.register_blueprint(news_blu)
-    app.register_blueprint(admin_blu, url_prfix="/admin")  # 在注册蓝图时指定url前缀
+    app.register_blueprint(profile_blu)
+    app.register_blueprint(admin_blu, url_prefix="/admin")  # 在注册蓝图时指定url前缀
 
     return app
 

@@ -1,10 +1,56 @@
 # 新闻详情页
 from flask import render_template, current_app, g, jsonify, abort, request
 from info import constants, db
-from info.models import News, Category, Comment, CommentLike
+from info.models import News, Comment, CommentLike, User
 from info.modules.news import news_blu
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
+
+
+@news_blu.route("/followed_user", methods=["POST"])
+@user_login_data
+def followed_user():
+    """新闻详情页 关注/取消关注用户"""
+    user = g.user  # 登录用户
+    if not user:
+        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
+
+    user_id = request.json.get("user_id")  # 当前新闻的作者用户
+    action = request.json.get("action")
+
+    if not all([user_id, action]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    if action not in (["follow", "unfollow"]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    try:
+        other = User.query.get(user_id)  # 查询新闻作者的用户信息
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询失败")
+
+    if not other:
+        return jsonify(errno=RET.NODATA, errmsg="未查询到新闻作者")
+
+    # 点击的是关注按钮
+    if action == "follow":
+        # user.followed 取到该用户关注的所有人
+        # 新闻作者不在用户关注列表中才去添加关注
+        if other not in user.followed:
+            # append(other) 该用户的关注列表添加该新闻的作者用户
+            user.followed.append(other)
+        else:
+            return jsonify(errno=RET.DATAEXIST, errmsg="当前用户已被关注")
+    # 点击的是取消关注按钮
+    else:
+        if other in user.followed:
+            # 该用户关注者中移除当前作者
+            user.followed.remove(other)
+        else:
+            return jsonify(errno=RET.DATAEXIST, errmsg="当前用户未被关注")
+
+    return jsonify(errno=RET.OK, errmsg="OK")
 
 
 @news_blu.route("/comment_like", methods=["POST"])
@@ -259,11 +305,22 @@ def news_detail(news_id):
             comment_dict["is_like"] = True
         comment_dict_li.append(comment_dict)
 
+    # 新闻详情页右侧 当前新闻的作者未关注
+    is_followed = False
+
+    # 新闻有作者 & 访问网站用户已登录
+    if news.user and user:
+        # 判断 新闻的作者 是否在 登录用户的关注者中
+        if news.user in user.followed:
+            # 把关注状态设置为 已关注该新闻作者
+            is_followed = True
+
     data = {
         "user": user.to_dict() if user else None,  # 三元表达式
         "news_dict_li": news_dict_li,
         "news": news.to_dict(),
         "is_collected": is_collected,
+        "is_followed": is_followed,
         "comments": comment_dict_li
     }
 

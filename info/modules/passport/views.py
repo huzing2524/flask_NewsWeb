@@ -19,23 +19,27 @@ def logout():
     session.pop("nick_name", None)
     # 删除管理员登录之后保持的session，否则先有管理员登录、退出之后，再用普通账号登录，可以访问管理员后台
     session.pop("is_admin", None)
+
     return jsonify(errno=RET.OK, errmsg="退出登录成功")
 
 
 @passport_blu.route("/login", methods=["POST"])
 def login():
     """登录账号"""
+
     # 1.获取参数
-    param_dict = request.json
-    mobile = param_dict.get("mobile")
-    password = param_dict.get("password")
+    params_dict = request.json
+    mobile = params_dict.get("mobile")
+    passport = params_dict.get("passport")
+
     # 2.校验参数
-    if not all([mobile, password]):
+    if not all([mobile, passport]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
     # 校验手机号是否正确
     if not re.match("1[35678]\\d{9}", mobile):
         return jsonify(errno=RET.PARAMERR, errmsg="手机号格式错误")
+
     # 3.在Mysql数据库查询是否存在这个用户
     try:
         user = User.query.filter(User.mobile == mobile).first()
@@ -47,7 +51,7 @@ def login():
         return jsonify(errno=RET.NODATA, errmsg="用户不存在")
 
     # 5.校验密码是否正确,调用models中的实例方法把密文密码和明文密码进行比对
-    if not user.check_passowrd(password):
+    if not user.check_password(passport):
         return jsonify(errno=RET.PWDERR, errmsg="密码错误")
 
     # 6.往session中添加保存数据保持登录状态
@@ -76,6 +80,7 @@ def register():
     # 2.校验参数
     if not all([mobile, smscode, password]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
     if not re.match("1[35678]\\d{9}", mobile):
         return jsonify(errno=RET.PARAMERR, errmsg="手机号格式错误")
 
@@ -129,8 +134,9 @@ def send_sms_code():
     '{"mobiel": "18811111111", "image_code": "AAAA", "image_code_id": "u23jksdhjfkjh2jh4jhdsj"}'
     # 1.获取参数:手机号/图片验证码内容/图片验证码的编号(随机值)
     # loads() 把字符串转换成json字典格式
-    params_dict = json.loads(request.data)
-    # params_dict = request.json
+    # params_dict = json.loads(request.data)
+    params_dict = request.json
+
     mobile = params_dict.get("mobile")
     image_code = params_dict.get("image_code")
     image_code_id = params_dict.get("image_code_id")
@@ -185,15 +191,18 @@ def get_image_code():
     # 2.判断参数是否有值
     if not image_code_id:
         return abort(403)
+
     # 3.生成图片验证码
     name, text, image = captcha.generate_captcha()
     current_app.logger.debug("图片验证码内容是:%s" % text)
+
     # 4.保存图片验证码文字内容到redis
     try:
         redis_store.set("ImageCodeId_" + image_code_id, text, constants.IMAGE_CODE_REDIS_EXPIRES)
     except Exception as e:
         current_app.logger.error(e)
         abort(500)
+
     # 5.返回图片验证码
     response = make_response(image)
     # 设置数据的类型，以便浏览器更加智能识别其是什么类型

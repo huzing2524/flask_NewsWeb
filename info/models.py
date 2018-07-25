@@ -2,7 +2,6 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from info import constants
-# 从当前的info文件夹里的__init__模块导入db = SQLAlchemy()数据库初始化变量
 from . import db
 
 
@@ -46,7 +45,7 @@ class User(BaseModel, db.Model):
         ),
         default="MAN")
 
-    # 当前用户收藏的所有新闻
+    # 当前用户收藏的所有新闻lazy="dynamic"
     collection_news = db.relationship("News", secondary=tb_user_collection, lazy="dynamic")  # 用户收藏的新闻
     # 用户所有的粉丝，添加了反向引用followed，代表用户都关注了哪些人
     followers = db.relationship('User',
@@ -56,19 +55,21 @@ class User(BaseModel, db.Model):
                                 backref=db.backref('followed', lazy='dynamic'),
                                 lazy='dynamic')
 
-    # 当前用户所发布的新闻
-    news_list = db.relationship('News', backref='user', lazy='dynamic')
-
     @property
     def password(self):
-        raise AttributeError("当前属性不可读")
+        raise AttributeError("当前属性不允许读取")
 
     @password.setter
     def password(self, value):
+        # self.password_hash = 对value加密
         self.password_hash = generate_password_hash(value)
 
-    def check_passowrd(self, password):
+    def check_password(self, password):
+        """校验密码"""
         return check_password_hash(self.password_hash, password)
+
+    # 当前用户所发布的新闻
+    news_list = db.relationship('News', backref='user', lazy='dynamic')
 
     def to_dict(self):
         resp_dict = {
