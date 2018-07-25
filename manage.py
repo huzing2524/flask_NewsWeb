@@ -1,4 +1,4 @@
-"""程序入口"""
+"""程序入口，启动文件"""
 
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand

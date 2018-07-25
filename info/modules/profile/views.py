@@ -1,3 +1,4 @@
+# 个人用户中心资料展示页面
 from flask import render_template, g, redirect, request, jsonify, current_app, abort
 from info import constants, db
 from info.models import News, Category, User
@@ -131,6 +132,7 @@ def user_follow():
 @user_login_data
 def user_news_list():
     """个人中心 新闻列表"""
+
     page = request.args.get("p", 1)
     try:
         page = int(page)
@@ -143,8 +145,7 @@ def user_news_list():
     current_page = 1
     total_page = 1
     try:
-        paginate = News.query.filter(News.user_id == user.id).paginate(page, constants.USER_COLLECTION_MAX_NEWS,
-                                                                       False)
+        paginate = News.query.filter(News.user_id == user.id).paginate(page, constants.USER_COLLECTION_MAX_NEWS, False)
         news_list = paginate.items
         current_page = paginate.page
         total_page = paginate.pages
@@ -153,12 +154,13 @@ def user_news_list():
 
     news_dict_li = []
     for news in news_list:
+        # to_review_dict() 新闻审核的状态status, 未审核通过的原因reason
         news_dict_li.append(news.to_review_dict())
 
     data = {
         "news_list": news_dict_li,
         "total_page": total_page,
-        "current_page": current_page,
+        "current_page": current_page
     }
 
     return render_template("news/user_news_list.html", data=data)
@@ -170,6 +172,7 @@ def news_release():
     """新闻发布页面 显示新闻分类/发布新闻(分类、标题、内容)"""
     # ① 显示新闻分类
     if request.method == "GET":
+        # 1.数据表模型对象Category查询所有的新闻分类数据
         categories = []
         try:
             categories = Category.query.all()
@@ -179,18 +182,24 @@ def news_release():
         category_dict_li = []
         for category in categories:
             category_dict_li.append(category.to_dict())
-        # 删除索引为0，最新的分类。最新的分类是所有新闻按照create_time排序查询得到，发布的时候不能指定这个分类
+        # 删除索引为0的分类:删除最新的新闻分类.最新的分类是查询所有新闻的create_time排序得到的,发布新闻不允许指定这个分类
         category_dict_li.pop(0)
 
         return render_template("news/user_news_release.html", data={"categories": category_dict_li})
 
     # ② 发布新闻(分类、标题、内容)，从表单中获取
-    title = request.form.get("title")  # 标题
-    source = "个人发布"  # 新闻来源
-    digest = request.form.get("digest")  # 摘要
-    content = request.form.get("content")  # 新闻内容
-    index_image = request.files.get("index_image")  # 新闻索引图片
-    category_id = request.form.get("category_id")  # 分类id
+    # 新闻标题
+    title = request.form.get("title")
+    # 新闻来源
+    source = "个人发布"
+    # 新闻摘要
+    digest = request.form.get("digest")
+    # 新闻内容
+    content = request.form.get("content")
+    # 新闻索引图片
+    index_image = request.files.get("index_image")
+    # 新闻分类id
+    category_id = request.form.get("category_id")
 
     if not all([title, source, digest, content, index_image, category_id]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
@@ -219,6 +228,7 @@ def news_release():
     news.index_image_url = constants.QINIU_DOMIN_PREFIX + key
     news.category_id = category_id
     news.user_id = g.user.id
+
     # 当前新闻状态 如果为0代表审核通过，1代表审核中，-1代表审核不通过
     # 发布新闻必须把状态设置为1，需要审核
     news.status = 1
@@ -238,6 +248,7 @@ def news_release():
 def user_collection():
     """个人中心 用户新闻收藏"""
     # 从url地址中获取页数 location.href = "/user/collection?p=" + current
+    # 取出当前的页数,没有数据默认值为第一页
     page = request.args.get("p", 1)
     try:
         page = int(page)
@@ -245,7 +256,10 @@ def user_collection():
         current_app.logger.error(e)
         page = 1
 
+    # 查询用户指定页数收藏的新闻,根据选中页数按钮显示
     user = g.user
+    # collection_news 当前用户收藏的所有新闻, lazy="dynamic" 动态查询
+    # paginate 分页查询参数: 当前页数, 每页数据数量,是否有错误输出
     news_list = []
     total_page = 1
     current_page = 1
@@ -273,6 +287,7 @@ def user_collection():
 @profile_blu.route("/pass_info", methods=["GET", "POST"])
 @user_login_data
 def pass_info():
+    """修改密码页面"""
     if request.method == "GET":
         return render_template("news/user_pass_info.html")
 
@@ -282,8 +297,9 @@ def pass_info():
     if not all([old_password, new_password]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
-    # 从原来的用户信息中查询原有密码和现在输入的old_password进行对比
     user = g.user
+    # check_passowrd是数据表模型中哈希加密后的密码与传入的密码进行对比
+    # 判断当前使用的旧密码是否正确
     if not user.check_password(old_password):
         return jsonify(errno=RET.PWDERR, errmsg="原密码错误")
 
@@ -298,12 +314,12 @@ def pass_info():
 def pic_info():
     """个人中心网页展示/修改用户头像"""
     user = g.user
+    # 浏览器GET请求，在g.user查询出个人信息的头像，直接返回
     if request.method == "GET":
-        # 浏览器GET请求，在g.user查询出个人信息的头像，直接返回
         return render_template("news/user_pic_info.html", data={"user": user.to_dict()})
 
-    # 浏览器POST请求，修改头像
-    # 1.获取上传的图片
+    # 请求方式是"POST"时,修改上传用户图片
+    # 1.取用户上传的图片
     try:
         avatar = request.files.get("avatar").read()
     except Exception as e:
@@ -318,20 +334,21 @@ def pic_info():
         current_app.logger.error(e)
         return jsonify(errno=RET.THIRDERR, errmsg="上传头像失败")
 
-    # 3.保存头像图片的地址
+    # 3.保存头像地址在user中
+    # QINIU_DOMIN_PREFIX是七牛云的url前缀,本地的图片往七牛云上传时会自动生成一个key,把这个key储存在mysql中,就可以通过key去七牛云请求查找到照片
     user.avatar_url = key
-    return jsonify(errno=RET.OK, errmsg="OK", data={"avatar_url": constants.QINIU_DOMIN_PREFIX + key})
+    return jsonify(errno=RET.OK, errmsg="发送成功", data={"avatar_url": constants.QINIU_DOMIN_PREFIX + key})
 
 
 @profile_blu.route("/base_info", methods=["GET", "POST"])
 @user_login_data
 def base_info():
-    """个人中心网页，根据传入的请求方式(GET展示信息/POST修改数据)做不同的事情"""
+    """个人中心网页--->用户信息展示，根据传入的请求方式(GET展示信息/POST修改数据)做不同的事情"""
+    # 1.请求方式是GET时,是直接从g.user获取获取用户信息,然后返回给浏览器展示
     if request.method == "GET":
-        # 浏览器GET请求，在g.user查询出个人信息，直接返回
         return render_template("news/user_base_info.html", data={"user": g.user.to_dict()})
 
-    # 浏览器POST请求，修改个人信息
+    # 2.请求方式是POST时,是要修改用户信息
     nick_name = request.json.get("nick_name")
     signature = request.json.get("signature")
     gender = request.json.get("gender")
@@ -341,7 +358,7 @@ def base_info():
     if gender not in (["WOMAN", "MAN"]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
-    # 修改用户信息，并且传递给(g变量)g.user保存
+    # 修改用户信息,签名/昵称/性别，并且传递给(g变量)g.user保存
     user = g.user
     user.signature = signature
     user.nick_name = nick_name
@@ -353,6 +370,7 @@ def base_info():
 @profile_blu.route("/info")
 @user_login_data
 def user_info():
+    """个人中心根路由,主页"""
     user = g.user
     if not user:
         # 没有登录，重定向到首页

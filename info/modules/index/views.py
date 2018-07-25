@@ -9,13 +9,9 @@ from . import index_blu
 @index_blu.route("/news_list")
 def news_list():
     """显示首页滚动新闻和分类新闻展示"""
-    # 1. 获取参数
-    # 新闻的分类id
-    cid = request.args.get("cid", "1")
-    page = request.args.get("page", "1")
-    per_page = request.args.get("per_page", "10")
-
-    # 2. 校验参数
+    cid = request.args.get("cid", "1")  # 数据表info_category结构中:新闻的分类id,"1"代表分类为最新新闻,"2"代表股市新闻
+    page = request.args.get("page", "1")  # 当前页数
+    per_page = request.args.get("per_page", "10")  # 每一页加载多少条数据,默认值为10条新闻
     try:
         page = int(page)
         cid = int(cid)
@@ -24,24 +20,24 @@ def news_list():
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
+    # 查询新闻,设置过滤条件,只显示已审核通过(status=0)的新闻;审核中和审核不通过的新闻在查询时过滤掉
     # 当前新闻状态 如果为0代表审核通过，1代表审核中，-1代表审核不通过
-    # 添加过滤条件，只显示审核通过的新闻
     filters = [News.status == 0]
-    if cid != 1:  # 查询的不是最新的数据
-        # 需要添加条件
+    if cid != 1:  # 查询的不是最新分类的数据
+        # 数据表info_news中category_id为2,3,4; 此时需要添加条件
         filters.append(News.category_id == cid)
 
-    # 3. 查询数据
     try:
+        # *filters 拆包; 按照创建时间排序; paginate分页查询
         paginate = News.query.filter(*filters).order_by(News.create_time.desc()).paginate(page, per_page, False)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="数据查询错误")
 
-    # 取到当前页的数据
+    # 取当前页的数据
     news_model_list = paginate.items  # 模型对象列表
-    total_page = paginate.pages
-    current_page = paginate.page
+    total_page = paginate.pages  # 总页数
+    current_page = paginate.page  # 当前页
 
     # 将模型对象列表转成字典列表
     news_dict_li = []
@@ -64,15 +60,15 @@ def index():
     # 1.如果用户已经登录,将当前登录用户的数据传到模板中,供模板显示
     user = g.user
 
-    # 右侧的新闻排行的逻辑
+    # 首页右侧的新闻排行显示
     news_list = []
     try:
-        # news_list是查询语句
+        # news_list查询的结果是mysql查询语句,需要循环遍历取出每一条新闻数据
         news_list = News.query.order_by(News.clicks.desc()).limit(constants.CLICK_RANK_MAX_NEWS)
     except Exception as e:
         current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询错误")
 
-    # 定义一个空的字典列表，里面装的就是字典
     news_dict_li = []
     # 遍历对象列表，将对象的字典添加到字典列表中
     for news in news_list:
@@ -97,6 +93,6 @@ def index():
 
 # 在打开网页的时候，浏览器会默认去请求根路径+favicon.ico作网站标签的小图标
 # send_static_file 是 flask 去查找指定的静态文件所调用的方法
-@index_blu.route('/favicon.ico')
+@index_blu.route("/favicon.ico")
 def favicon():
     return current_app.send_static_file("news/favicon.ico")
