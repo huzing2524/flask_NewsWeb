@@ -17,7 +17,7 @@ def logout():
     session.pop("user_id", None)
     session.pop("mobile", None)
     session.pop("nick_name", None)
-    # 删除管理员登录之后保持的session，否则先有管理员登录、退出之后，再用普通账号登录，可以访问管理员后台
+    # 清除管理员的session状态(用管理员账户登录,退出,然后用普通账户却能访问管理员页面)
     session.pop("is_admin", None)
 
     return jsonify(errno=RET.OK, errmsg="退出登录成功")
@@ -79,7 +79,7 @@ def register():
 
     # 2.校验参数
     if not all([mobile, smscode, password]):
-        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不够")
 
     if not re.match("1[35678]\\d{9}", mobile):
         return jsonify(errno=RET.PARAMERR, errmsg="手机号格式错误")
@@ -205,6 +205,6 @@ def get_image_code():
 
     # 5.返回图片验证码
     response = make_response(image)
-    # 设置数据的类型，以便浏览器更加智能识别其是什么类型
+    # 设置浏览器headers中的格式，以便浏览器更加智能识别其是什么类型
     response.headers["Content-Type"] = "image/jpg"
     return response

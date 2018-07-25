@@ -12,14 +12,14 @@ from info.utils.response_code import RET
 
 @admin_blu.route("/news_type", methods=["GET", "POST"])
 def news_type():
-    """新闻分类管理"""
-    # 1.GET请求方式展示新闻分类
+    """新闻分类编辑管理 显示/修改或新增新闻分类"""
+    # 1.GET请求查询显示新闻的分类
     if request.method == "GET":
         try:
             categories = Category.query.all()
         except Exception as e:
             current_app.logger.error(e)
-            return render_template("admin/news_type.html", errmsg="数据库查询失败")
+            return render_template("admin/news_type.html", errmsg="查询新闻分类失败")
 
         category_dict_li = []
         for category in categories:
@@ -29,10 +29,12 @@ def news_type():
         category_dict_li.pop(0)
 
         data = {"categories": category_dict_li}
+
         return render_template("admin/news_type.html", data=data)
 
     # 2.POST请求方式增加/修改新闻分类
     cname = request.json.get("name")
+    # 传入新闻的分类id代表编辑已存在的分类名称
     cid = request.json.get("id")
 
     if not cname:
@@ -48,11 +50,12 @@ def news_type():
             return jsonify(errno=RET.DBERR, errmsg="数据库查询失败")
 
         if not category:
-            return jsonify(errno=RET.NODATA, errmsg="未查询到分类数据")
+            return jsonify(errno=RET.NODATA, errmsg="未查询到该新闻分类")
 
-        # 保存分类的名称
+        # 修改保存新闻的分类名称
         category.name = cname
 
+    # 没有分类id代表新增新闻的分类
     # 新增新闻分类的名称，初始化ORM对象模型，然后保存、提交
     else:
         category = Category()
@@ -87,8 +90,8 @@ def news_edit_detail():
         if not news:
             return render_template("admin/news_edit_detail.html", errmsg="新闻不存在")
 
+        # 查询显示新闻的分类
         try:
-            # 查询新闻分类
             categories = Category.query.all()
         except Exception as e:
             current_app.logger.error(e)
@@ -102,7 +105,7 @@ def news_edit_detail():
             cate_dict = category.to_dict()
             # 遍历到的分类id=当前新闻的分类id
             if category.id == news.category_id:
-                # 记录当前分类被选中的状态，方便直接显示某个新闻的分类
+                # 转换后的分类字典添加被选中的标记键值对,当前新闻显示当前所属的分类
                 cate_dict["is_selected"] = True
             category_dict_li.append(cate_dict)
 
@@ -131,7 +134,7 @@ def news_edit_detail():
         news = News.query.get(news_id)
     except Exception as e:
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR, errmsg="数据查询失败")
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询失败")
 
     if not news:
         return jsonify(errno=RET.NODATA, errmsg="未查询到此新闻")
@@ -143,14 +146,17 @@ def news_edit_detail():
             current_app.logger.error(e)
             return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
+        # 把新闻标题照片上传到七牛云
         try:
             key = storage(index_image)
         except Exception as e:
             current_app.logger.error(e)
-            return jsonify(errno=RET.THIRDERR, errmsg="上传图片失败")
+            return jsonify(errno=RET.THIRDERR, errmsg="图片上传失败")
 
+        # 把图片的链接存储到mysql
         news.index_image_url = constants.QINIU_DOMIN_PREFIX + key
 
+    # 保存新闻编辑的数据到mysql
     news.title = title
     news.digest = digest
     news.content = content
@@ -161,7 +167,7 @@ def news_edit_detail():
 
 @admin_blu.route("/news_edit")
 def news_edit():
-    """新闻编辑"""
+    """新闻版式编辑"""
     page = request.args.get("p", 1)
     keywords = request.args.get("keywords", None)
     try:
@@ -174,8 +180,9 @@ def news_edit():
     current_page = 1
     total_page = 1
 
-    filters = [News.status == 0]
+    filters = [News.status == 0]  # 审核通过的新闻
     if keywords:
+        # 如果有关键字,那么向过滤条件中添加
         filters.append(News.title.contains(keywords))
 
     try:
@@ -222,6 +229,7 @@ def news_review_action():
     if not news:
         return jsonify(errno=RET.NODATA, errmsg="没有此新闻")
 
+    # 新闻审核通过
     if action == "accept":
         # 当前新闻状态 如果为0代表审核通过，1代表审核中，-1代表审核不通过
         news.status = 0  # 审核通过
@@ -241,6 +249,7 @@ def news_review_detail(news_id):
     """新闻管理--->新闻内容审核"""
     news = None
     try:
+        # 通过html传入的news_id=news.id查询新闻
         news = News.query.get(news_id)
     except Exception as e:
         current_app.logger.error(e)
@@ -267,7 +276,8 @@ def news_review():
     current_page = 1
     total_page = 1
 
-    # 过滤条件：新闻状态不为0，剔除审核通过的新闻
+    # 当前新闻状态 如果为0代表审核通过，1代表审核中，-1代表审核不通过
+    # 数据库查询过滤条件:新闻状态不为0,只显示审核中和审核不通过的新闻
     filters = [News.status != 0]
     if keywords:
         # 把关键字添加到过滤条件(新闻标题中)
@@ -298,13 +308,14 @@ def news_review():
 
 @admin_blu.route("/user_list")
 def user_list():
-    """用户统计列表"""
+    """用户信息列表"""
+    # 从当前浏览页面的请求中获取当前页数,默认值是第一页
     page = request.args.get("page", 1)
     try:
         page = int(page)
     except Exception as e:
         current_app.logger.error(e)
-        page = 1
+        page = 1  # 有异常置为第一页
 
     users = []
     current_page = 1
@@ -341,38 +352,42 @@ def user_count():
     except Exception as e:
         current_app.logger.error(e)
 
-    mon_count = 0
-    t = time.localtime()  # 取出当前时间
-    # 把字符串转成datetime对象
-    begin_mon_date = datetime.strptime(("%d-%02d-01" % (t.tm_year, t.tm_mon)), "%Y-%m-%d")
+    mon_count = 0  # 月新增人数
+    t = time.localtime()  # 取出当前时间 time.struct_time(tm_year=2018, tm_mon=7, tm_mday=22, tm_hour=1, tm_min=58, tm_sec=53, tm_wday=6, tm_yday=203, tm_isdst=1)
+    # strptime 把时间格式的字符串 转换成 时间对象
+    # 生成每个月的第一天
+    begin_mon_date = datetime.strptime(("%d-%02d-01" % (t.tm_year, t.tm_mon)), "%Y-%m-%d")  # 2018-07-01 00:00:00
     try:
         # 月新增人数
         mon_count = User.query.filter(User.is_admin == False, User.create_time > begin_mon_date).count()
     except Exception as e:
         current_app.logger.error(e)
 
-    day_count = 0
-    # 日新增人数
-    begin_day_date = datetime.strptime(("%d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday)), "%Y-%m-%d")
+    day_count = 0  # 日新增人数
+    begin_day_date = datetime.strptime(("%d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday)),
+                                       "%Y-%m-%d")  # 2018-07-22 00:00:00
     try:
         day_count = User.query.filter(User.is_admin == False, User.create_time > begin_day_date).count()
     except Exception as e:
         current_app.logger.error(e)
 
-    # 用户登录活跃人数 折线图数据
-    active_time = []
-    active_count = []
+    # 折线图,按照天数统计活跃人数
+    active_time = []  # 用户最后一次登录的时间
+    active_count = []  # 登录的用户人数
     # 取到今天的时间字符串
     today_date_str = ("%d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday))
-    # 转换成datetime时间对象
+    # 转换成datetime时间对象 今天的时间 年-月-日 时:分:秒 2018-07-22 00:00:00
     today_date = datetime.strptime(today_date_str, "%Y-%m-%d")
 
-    for i in range(0, 31):
+    for i in range(0, 31):  # 在一个月31天内循环
+        # print(timedelta(days=2))------2 days, 0:00:00
+        # timedelta：第i天的24个小时的时间
         # 取到某一天的0点0分
-        begin_date = today_date - timedelta(days=i)  # timedelta：第i天的24个小时的时间
+        begin_date = today_date - timedelta(days=i)  # 每次循环,begin_today_date的天数-i天的时间,时间向前减少i天
         # 取到下一天(i-1)的0点0分
-        end_date = today_date - timedelta(days=(i - 1))
-        # 每天的活跃人数统计数据是：最后登录时间大于昨天的0:00，小于今天的24:00
+        end_date = today_date - timedelta(days=(i - 1))  # 每次循环,begin_today_date的天数-(i-1),时间向前减少i-1天,比上面的天数推后一天
+
+        # 查询今天活跃的用户数量,过滤条件是:最后一次登录时间,大于昨天0: 00, 小于24: 00
         count = User.query.filter(User.is_admin == False, User.last_login >= begin_date,
                                   User.last_login < end_date).count()
         active_count.append(count)
@@ -403,10 +418,9 @@ def index():
 
 
 @admin_blu.route("/login", methods=["GET", "POST"])
-@user_login_data
 def login():
     """后台管理员账号登录界面"""
-    # ① GET获取方式展示登录界面
+    # GET获取方式展示登录界面
     if request.method == "GET":
         user_id = session.get("user_id", None)
         is_admin = session.get("is_admin", False)
@@ -416,11 +430,12 @@ def login():
 
         return render_template("admin/login.html")
 
-    # ② POST提交方式管理员登录
+    # 登录界面是form表单
     username = request.form.get("username")
     password = request.form.get("password")
 
     if not all([username, password]):
+        # 如果是ajax请求,返回jsonify; 通过form表单提交,错误直接返回原网页,带上错误信息
         return render_template("admin/login.html", errmsg="参数错误")
 
     try:
@@ -440,5 +455,7 @@ def login():
     session["nick_name"] = user.nick_name
     session["is_admin"] = user.is_admin
 
-    # 只能重定向，不能渲染模板网页，因为登录成功后要跳转到管理员主页，url地址要从login变化成index，渲染模板只能返回数据，url地址不会变
-    return redirect(url_for("admin.index"))  # admin模块下的index视图函数
+    # 根据视图函数名称得到当前所指向的url,需要指定是admin包下面的index视图函数
+    # 不能使用render_template,因为它是渲染模板,传递数据返回当前页面,url地址并没有跳转
+    # 只能使用redirect跳转到后台管理员主页面.url地址要从login变化成index
+    return redirect(url_for("admin.index"))

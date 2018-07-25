@@ -52,4 +52,3 @@ config = {
     "production": ProductionConfig,
     "testing": TestingConfig
 }
-

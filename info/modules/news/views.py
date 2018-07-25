@@ -89,6 +89,7 @@ def comment_like():
                                                       CommentLike.comment_id == comment.id).first()
         # 查询结果为空，说明评论是处于非点赞状态，增加两个字段user_id，comment_id的值，add使其变为点赞状态
         if not comment_like_model:
+            # 点赞评论,CommentLike是用户和评论之间关联的第三张表
             comment_like_model = CommentLike()
             comment_like_model.user_id = user.id
             comment_like_model.comment_id = comment.id
@@ -126,6 +127,7 @@ def comment_news():
     # 1. 取到请求参数
     news_id = request.json.get("news_id")
     comment_content = request.json.get("comment")
+    # parent_id 不是必须传入的参数,如果不传入parent_id,那么是评论主新闻,如果传入parent_id,则是评论其它人的评论
     parent_id = request.json.get("parent_id")
 
     # 2. 判断参数
@@ -150,19 +152,22 @@ def comment_news():
     if not news:
         return jsonify(errno=RET.NODATA, errmsg="未查询到新闻数据")
 
-    # 4. 初始化一个评论模型，并且赋值
+    # 4. 初始化评论mysql中对象模型,把传入的参数添加到数据表的字段中
     comment = Comment()
     comment.user_id = user.id
     comment.news_id = news_id
     comment.content = comment_content
-
+    # 对其它人的评论进行评论
     # 主评论的parent_id为None，子评论的parent_id字段有值，为主评论的主键id
     if parent_id:
         # 子评论
         comment.parent_id = parent_id
-
-    # 在函数return返回结束之前就需要传入参数comment的用户id，新闻id，评论内容
-    # 但是自动提交是在函数运行结束之后才会提交。所以需要手动try...commit()...except...rollback()
+    """
+    即使配置了SQLALCHEMY_COMMIT_ON_TEARDOWN = True,这个自动提交动作是在视图函数执行完return之后才会发生,
+    但是需要在函数结束前传递comment这个参数,在函数return返回结束之前就需要传入参数comment的用户id，新闻id，评论内容
+    但是自动提交是在函数运行结束之后才会提交。所以需要手动try...commit()...except...rollback(),
+    返回给前端,取出值可以查出评论的id,内容,用户,用户头像等信息
+    """
     try:
         db.session.add(comment)
         db.session.commit()
@@ -176,7 +181,8 @@ def comment_news():
 @news_blu.route("/news_collect", methods=["POST"])
 @user_login_data
 def collect_news():
-    """收藏/取消新闻"""
+    """收藏/取消收藏新闻"""
+    # 判断用户是否处于登录状态,如果未登录,则不允许收藏新闻
     user = g.user
     if not user:
         return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
@@ -222,24 +228,23 @@ def collect_news():
     return jsonify(errno=RET.OK, errmsg="收藏/取消收藏成功")
 
 
+# 127:0.0.1:5000/news/1
 @news_blu.route("/<int:news_id>")
 @user_login_data
 def news_detail(news_id):
-    """新闻详情页"""
-    # 查询用户登录信息
+    """新闻详情页,右侧作者信息卡片显示"""
+    # 查询用户的登录状态,g变量
     user = g.user
 
     # 右侧的新闻排行的展示
     news_list = []
     try:
-        # news_list是查询语句
+        # news_list结果是查询语句
         news_list = News.query.order_by(News.clicks.desc()).limit(constants.CLICK_RANK_MAX_NEWS)
     except Exception as e:
         current_app.logger.error(e)
 
-    # 定义一个空的字典列表，里面装的就是字典
     news_dict_li = []
-    # 遍历对象列表，将对象的字典添加到字典列表中
     for news in news_list:
         # news是每条新闻对应的模型对象; to_basic_dict()取类对象的属性转换成字典
         news_dict_li.append(news.to_basic_dict())
@@ -252,13 +257,11 @@ def news_detail(news_id):
         current_app.logger.error(e)
 
     if not news:
-        # 报404错误，404错误统一显示页面后续再处理
         abort(404)
 
     # 更新新闻的点击次数
     news.clicks += 1
-
-    # 是否是收藏　
+    # 新闻是否被收藏
     is_collected = False
 
     # 判断用户是否登录
@@ -296,10 +299,9 @@ def news_detail(news_id):
     comment_dict_li = []
     for comment in comments:
         comment_dict = comment.to_dict()
-        # 默认全部添加了未点赞的状态
+        # 代表初始状态下所有的评论都处于没有点赞的状态,在字典中添加key("is_like)和value(False),以便在mysql中存储是否点赞的状态
         comment_dict["is_like"] = False
-        # 从数据库中查询每一条评论是 点赞/未点赞 的状态
-        # 如果 每一条评论的id 都在 被点赞的评论id列表中comment_like_ids
+        # 如果遍历到的评论是被当前登录用户所点赞,把评论的状态设置为True点赞状态
         if comment.id in comment_like_ids:
             # 给评论字典comment_dict添加 "is_like" 点赞的状态
             comment_dict["is_like"] = True
@@ -307,6 +309,7 @@ def news_detail(news_id):
 
     # 新闻详情页右侧 当前新闻的作者未关注
     is_followed = False
+    # 通过backref，News.user可以通过新闻查找到用户
 
     # 新闻有作者 & 访问网站用户已登录
     if news.user and user:
@@ -316,6 +319,7 @@ def news_detail(news_id):
             is_followed = True
 
     data = {
+        # 查询用户登录状态在html模板和views视图函数中都用相同的变量名,否则查询不到登录状态
         "user": user.to_dict() if user else None,  # 三元表达式
         "news_dict_li": news_dict_li,
         "news": news.to_dict(),
