@@ -11,7 +11,9 @@
     <bookmark url="file://$PROJECT_DIR$/info/modules/passport/views.py" description="@passport_blu.route(&quot;/passport/sms_code&quot;, methods=..." line="127" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e2db773-f96f-4bc2-8b99-1bb0fb2a3db3" name="Default" comment="" />
+    <list default="true" id="5e2db773-f96f-4bc2-8b99-1bb0fb2a3db3" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -21,7 +23,7 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/flask_NewsWeb$views__1_.coverage" NAME="views (1) Coverage Results" MODIFIED="1532565228384" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/info/modules/index" />
-    <SUITE FILE_PATH="coverage/flask_NewsWeb$manage.coverage" NAME="manage Coverage Results" MODIFIED="1532572183898" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/flask_NewsWeb$manage.coverage" NAME="manage Coverage Results" MODIFIED="1532603782038" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/flask_NewsWeb$views.coverage" NAME="views Coverage Results" MODIFIED="1532565115856" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/info/modules/passport" />
     <SUITE FILE_PATH="coverage/flask_NewsWeb$config.coverage" NAME="config Coverage Results" MODIFIED="1531618980191" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/flask_NewsWeb$sms.coverage" NAME="sms Coverage Results" MODIFIED="1531710030180" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/info/libs/yuntongxun" />
@@ -185,6 +187,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -196,19 +199,6 @@
               <item name="flask_NewsWeb" type="b2602c69:ProjectViewProjectNode" />
               <item name="flask_NewsWeb" type="462c0819:PsiDirectoryNode" />
               <item name="info" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="flask_NewsWeb" type="b2602c69:ProjectViewProjectNode" />
-              <item name="flask_NewsWeb" type="462c0819:PsiDirectoryNode" />
-              <item name="info" type="462c0819:PsiDirectoryNode" />
-              <item name="modules" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="flask_NewsWeb" type="b2602c69:ProjectViewProjectNode" />
-              <item name="flask_NewsWeb" type="462c0819:PsiDirectoryNode" />
-              <item name="info" type="462c0819:PsiDirectoryNode" />
-              <item name="modules" type="462c0819:PsiDirectoryNode" />
-              <item name="admin" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="flask_NewsWeb" type="b2602c69:ProjectViewProjectNode" />
@@ -227,7 +217,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -606,7 +595,14 @@
       <option name="project" value="LOCAL" />
       <updated>1532567554407</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="completed">
+      <created>1532572291209</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1532572291209</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TodoView">
@@ -628,7 +624,7 @@
       <window_info anchor="bottom" id="Python Console" order="11" weight="0.79160637" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.28646517" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.5047106" />
-      <window_info content_ui="combo" id="Project" order="0" weight="0.2046589" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2046589" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" weight="0.2046589" />
       <window_info anchor="right" id="SciView" order="4" />
@@ -1046,8 +1042,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/info/templates/admin/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+        <state relative-caret-position="240">
+          <caret line="16" lean-forward="true" selection-start-line="16" selection-end-line="16" />
         </state>
       </provider>
     </entry>
