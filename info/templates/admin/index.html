@@ -10,7 +10,9 @@
 <body>
 <div class="header">
     <a href="#" class="logo fl"><img src="../../static/admin/images/logo.png" alt="logo"></a>
-    <a href="{{ url_for("admin.logout") }}" class="logout fr">退 出</a>
+    {#    下面两种方式都可以实现a标签链接请求到管理员退出登录的视图函数，url_for或者固定的url地址#}
+{#    <a href="{{ url_for("admin.logout") }}" class="logout fr">退 出</a>#}
+    <a href="/admin/logout" class="logout fr">退 出</a>
 </div>
 
 <div class="side_bar">
