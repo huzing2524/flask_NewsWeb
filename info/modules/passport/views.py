@@ -5,7 +5,7 @@ from flask import abort, current_app, make_response, json, session, jsonify, req
 from info import constants, db, redis_store
 from info.models import User
 from info.utils.response_code import RET
-from . import passport_blu
+from info.modules.passport import passport_blu
 from info.utils.captcha.captcha import captcha
 
 
