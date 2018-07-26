@@ -459,3 +459,15 @@ def login():
     # 不能使用render_template,因为它是渲染模板,传递数据返回当前页面,url地址并没有跳转
     # 只能使用redirect跳转到后台管理员主页面.url地址要从login变化成index
     return redirect(url_for("admin.index"))
+
+
+@admin_blu.route("/logout")
+def logout():
+    """管理员账户退出登录"""
+    session.pop("user_id", None)
+    session.pop("mobile", None)
+    session.pop("nick_name", None)
+    # 清除管理员的session状态
+    session.pop("is_admin", None)
+
+    return redirect(url_for("admin.login"))
