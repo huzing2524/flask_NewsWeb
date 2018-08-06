@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户中心</title>
+    <link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">
+    <link rel="stylesheet" type="text/css" href="../../static/news/css/jquery.pagination.css">
+    <link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">
+    <script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="../../static/news/js/jquery.pagination.min.js"></script>
+</head>
+<body class="inframe_body">
+<div class="my_collect">
+    <h3>我的收藏</h3>
+    <ul class="article_list">
+        {% for news in data.collections %}
+            <li><a href="/news/{{ news.id }}" target="_blank">{{ news.title }}</a><span>{{ news.create_time }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div id="pagination" class="page"></div>
+    <script>
+        $(function () {
+            {#pagination是jquery插件，会返回分页列表，设置分页信息#}
+            $("#pagination").pagination({
+                {#传递当前页#}
+                currentPage: {{ data.current_page }},
+                {#传递总页数#}
+                totalPage: {{ data.total_page }},
+                {#当点击分页列表的页数时，会自动调用callback，传递当前点击的页数#}
+                callback: function (current) {
+                    location.href = "/user/collection?p=" + current
+                }
+            });
+        });
+    </script>
+
+</div>
+</body>
+</html>
