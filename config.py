@@ -2,6 +2,7 @@ from redis import StrictRedis
 import os
 import base64
 import logging
+import pymysql
 
 
 class Config(object):
