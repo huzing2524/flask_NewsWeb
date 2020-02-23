@@ -1,4 +1,4 @@
-.ieda/
+.idea/
 *.py[cod]
 logs/log*
 migrations
